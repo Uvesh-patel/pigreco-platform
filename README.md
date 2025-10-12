@@ -24,7 +24,7 @@ If you're in a hurry and just want to get the platform running:
 ### Windows Users
 ```batch
 # Clone the repository
-git clone https://github.com/Uvesh-patel/pigreco-decidim.git
+git clone https://github.com/Pigreco-project/pigreco-decidim.git
 cd pigreco-decidim
 
 # Run the automated setup script
@@ -39,7 +39,7 @@ pigreco-setup.bat
 ### Linux/Mac Users
 ```bash
 # Clone the repository
-git clone https://github.com/Uvesh-patel/pigreco-decidim.git
+git clone https://github.com/Pigreco-project/pigreco-decidim.git
 cd pigreco-decidim
 
 # Run the automated setup script
@@ -95,7 +95,7 @@ The system uses mounted volumes to customize:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Uvesh-patel/pigreco-decidim.git
+   git clone https://github.com/Pigreco-project/pigreco-decidim.git
    cd pigreco-decidim
    ```
 
