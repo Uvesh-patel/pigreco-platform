@@ -1,7 +1,7 @@
 version: '3'
 services:
   decidim:
-    image: decidim/decidim:latest
+    image: decidim/decidim:0.28.6
     command: ["bundle", "exec", "rails", "s", "-b", "0.0.0.0"]
     ports:
       - 3000:3000
