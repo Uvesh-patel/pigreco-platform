@@ -54,7 +54,7 @@ cd pigreco-decidim
 ### Manual Setup
 ```bash
 # Clone the repository
-git clone https://github.com/Uvesh-patel/pigreco-decidim.git
+git clone https://https://github.com/Pigreco-project/pigreco-decidim.git
 cd pigreco-decidim
 
 # Start the containers
