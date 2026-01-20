@@ -46,3 +46,7 @@ node_modules/
 .idea/
 .vscode/
 *.code-workspace
+
+# Exclude cloudflared binary (users should download separately)
+cloudflared.exe
+cloudflared

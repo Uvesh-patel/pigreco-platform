@@ -45,6 +45,10 @@ A live demonstration is available at:
 git clone https://github.com/Uvesh-patel/pigreco-platform.git
 cd pigreco-platform
 
+# Download cloudflared.exe first (required for remote access)
+# Download from: https://github.com/cloudflare/cloudflared/releases/latest
+# Place cloudflared.exe in the project root folder
+
 # Terminal 1: Start Cloudflare Tunnel (for remote access)
 1-start-tunnel.bat
 
@@ -263,9 +267,15 @@ pigreco-platform/
 
 Expose your local platform to the internet for demos and remote access.
 
-### Install Cloudflared
+### Step 1: Download Cloudflared
 
-**Windows:**
+**Windows (Manual Download - Recommended):**
+1. Go to: https://github.com/cloudflare/cloudflared/releases/latest
+2. Download `cloudflared-windows-amd64.exe`
+3. Rename to `cloudflared.exe`
+4. Place in the project root folder
+
+**Windows (winget):**
 ```batch
 winget install --id Cloudflare.cloudflared
 ```
@@ -281,7 +291,7 @@ curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloud
 sudo dpkg -i cloudflared.deb
 ```
 
-### Deploy with Tunnel
+### Step 2: Deploy with Tunnel
 
 ```bash
 # Terminal 1: Start tunnel
