@@ -1765,3 +1765,12 @@ meetings.each_with_index do |meeting_attrs, index|
 end
 
 puts "=== PIGRECO Content Creation Completed ==="
+
+# Load Lomellina Flood Risk Scenario (from D8 report case study)
+begin
+  puts "\nLoading Lomellina Flood Risk Scenario..."
+  require_relative "lomellina_scenario"
+rescue => e
+  puts "Error loading Lomellina scenario: #{e.message}"
+  puts e.backtrace.first(5).join("\n") if ENV["DEBUG"]
+end

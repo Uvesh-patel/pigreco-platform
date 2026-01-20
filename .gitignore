@@ -36,3 +36,16 @@ node_modules/
 *.tmp
 *.bak
 *~
+
+# Exclude reports and manual documentation (uploaded separately)
+/docs/
+/pigreco_D8_final_report___Uvesh/
+
+# Exclude storage and uploads
+/storage/
+/public/uploads/
+
+# Exclude IDE files
+.idea/
+.vscode/
+*.code-workspace

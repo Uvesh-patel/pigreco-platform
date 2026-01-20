@@ -34,15 +34,20 @@ required_attributes << "reference_prefix" if org_columns.include?("reference_pre
 
 puts "Required organization attributes: #{required_attributes.join(', ')}"
 
-# Create the organization
+# Create or update the organization
 begin
-  organization = Decidim::Organization.find_by(host: "localhost")
+  # First check if any organization exists
+  organization = Decidim::Organization.first
   
   if organization.nil?
     puts "Creating organization..."
     
     # Create the organization directly using SQL to avoid any attribute issues
     connection = ActiveRecord::Base.connection
+    
+    # Determine the host - use environment variable if set, otherwise localhost
+    org_host = ENV['PIGRECO_HOST'] || 'localhost'
+    puts "Using host: #{org_host}"
     
     # We're including all the required and useful attributes directly in the SQL
     # This avoids any issues with attributes that don't exist in this Decidim version
@@ -53,7 +58,7 @@ begin
         facebook_handler, instagram_handler, youtube_handler, github_handler,
         description, created_at, updated_at, colors
       ) VALUES (
-        'PIGRECO', 'localhost', 'en', ARRAY['en'], 'PGRC',
+        'PIGRECO', '#{org_host}', 'en', ARRAY['en'], 'PGRC',
         TRUE, TRUE, 'pigreco', 'pigreco', 'pigreco', 'pigreco', 'pigreco',
         '{"en":"PIGRECO - Platform for Integrated Governance of Risk and Enhancement of Community Organizations"}',
         NOW(), NOW(),
@@ -150,13 +155,24 @@ begin
       connection.execute(update_sql)
     end
   else
-    puts "Organization already exists with ID: #{organization.id}"
+    puts "Organization already exists with ID: #{organization.id}, host: #{organization.host}"
+    # Update host if PIGRECO_HOST is set
+    if ENV['PIGRECO_HOST'] && organization.host != ENV['PIGRECO_HOST']
+      organization.update!(host: ENV['PIGRECO_HOST'], secondary_hosts: ['localhost'])
+      puts "Updated organization host to: #{ENV['PIGRECO_HOST']}"
+    end
   end
 rescue => e
-  puts "Error creating organization: #{e.message}"
+  puts "Error in organization setup: #{e.message}"
   puts e.backtrace.join("\n") if ENV["DEBUG"]
-  puts "Exiting seed process due to organization creation failure"
-  exit 1
+  # Try to continue with existing organization
+  organization = Decidim::Organization.first
+  if organization
+    puts "Continuing with existing organization: #{organization.name} (ID: #{organization.id})"
+  else
+    puts "No organization found - cannot continue"
+    exit 1
+  end
 end
 
 # Create an admin user - using pure SQL approach to bypass any validation issues
@@ -268,7 +284,15 @@ begin
       puts "Failed to create admin user via SQL"
     end
   else
-    puts "Admin user already exists with ID: #{admin.id}"
+    # Admin exists - reset password to ensure login works
+    # Use reset_password method which properly encrypts via Devise
+    admin.reset_password("decidim123456789", "decidim123456789")
+    admin.confirmed_at ||= Time.current
+    admin.failed_attempts = 0
+    admin.locked_at = nil
+    admin.accepted_tos_version = organization.tos_version
+    admin.save!(validate: false)
+    puts "Admin user already exists with ID: #{admin.id} (password reset)"
   end
 rescue => e
   puts "Error creating admin user: #{e.message}"
@@ -294,7 +318,13 @@ begin
       user.save!
       puts "Test user created: #{user.name}"
     else
-      puts "Test user already exists: #{user.name}"
+      # Reset password for existing test user using Devise method
+      user.reset_password("decidim123456", "decidim123456")
+      user.confirmed_at ||= Time.current
+      user.failed_attempts = 0
+      user.locked_at = nil
+      user.save!(validate: false)
+      puts "Test user already exists: #{user.name} (password reset)"
     end
   rescue => e
     puts "Error creating test user: #{e.message}"

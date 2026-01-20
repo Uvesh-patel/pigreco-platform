@@ -1,85 +1,137 @@
 # PIGRECO Risk Governance Platform
 
+![Decidim](https://img.shields.io/badge/Decidim-0.28.6-red)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![License](https://img.shields.io/badge/License-AGPL--3.0-green)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20Mac-lightgrey)
+
 ## Overview
 
-The PIGRECO Risk Governance Platform is a GIS-enabled participatory decision-support system built to facilitate structured collaboration between citizens, experts, stakeholders, and administrators in multi-risk assessment and governance. The platform extends the Decidim framework with specialized components for risk evaluation, participatory decision-making, and transparent governance.
+The PIGRECO Risk Governance Platform is a participatory decision-support system built on [Decidim 0.28.6](https://decidim.org/) to facilitate structured collaboration between citizens, experts, stakeholders, and administrators in multi-risk assessment and governance. 
+
+This repository includes the **Lomellina Flood Risk Use Case** - a complete implementation demonstrating participatory flood risk management in the Lomellina region of Lombardy, Italy, featuring 6 stakeholder groups, 2 participatory processes, and a deliberative assembly.
+
+## 🌐 Live Demo
+
+A live demonstration is available at:
+
+**https://partial-mechanical-stored-estimates.trycloudflare.com/**
+
+> ⚠️ **Note:** This URL is temporary and may not remain active. If unavailable, follow the Quick Start guide below to deploy your own instance.
 
 ## Table of Contents
 - [Quick Start](#quick-start)
+- [Lomellina Use Case](#lomellina-flood-risk-use-case)
 - [Architecture](#architecture)
 - [Development Setup](#development-setup)
-- [Production Deployment](#production-deployment)
-- [Customization Guide](#customization-guide)
-- [Data Seeding](#data-seeding)
-- [Security](#security)
-- [Branding](#branding)
+- [Cloudflare Tunnel Deployment](#cloudflare-tunnel-deployment)
+- [User Credentials](#user-credentials)
+- [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
-- [Release Process](#release-process)
-- [Contact](#contact)
+- [License](#license)
 
 ## Quick Start
 
-If you're in a hurry and just want to get the platform running:
+### Prerequisites
+- **Docker Desktop** (4.0+ recommended)
+- **Git**
+- 4GB RAM minimum
+- 20GB free disk space
 
-### Windows Users
+### Windows Users (Recommended)
+
 ```batch
 # Clone the repository
-git clone https://github.com/Pigreco-project/pigreco-decidim.git
-cd pigreco-decidim
+git clone https://github.com/Uvesh-patel/pigreco-platform.git
+cd pigreco-platform
 
-# Run the automated setup script
-pigreco-setup.bat
+# Terminal 1: Start Cloudflare Tunnel (for remote access)
+1-start-tunnel.bat
 
-# This will take approximately 3-5 minutes for all migrations and seeding
-
-# Access the platform at http://localhost:3000
-# Admin credentials: admin@pigreco.local / decidim123456789
+# Terminal 2: Deploy the platform (copy URL from tunnel output)
+2-deploy.bat
 ```
 
 ### Linux/Mac Users
+
 ```bash
 # Clone the repository
-git clone https://github.com/Pigreco-project/pigreco-decidim.git
-cd pigreco-decidim
+git clone https://github.com/Uvesh-patel/pigreco-platform.git
+cd pigreco-platform
 
-# Run the automated setup script
-./pigreco-setup.sh
+# Make scripts executable
+chmod +x 1-start-tunnel.sh 2-deploy.sh
 
-# This will take approximately 3-5 minutes for all migrations and seeding
+# Terminal 1: Start Cloudflare Tunnel
+./1-start-tunnel.sh
 
-# Access the platform at http://localhost:3000
-# Admin credentials: admin@pigreco.local / decidim123456
+# Terminal 2: Deploy the platform
+./2-deploy.sh
 ```
 
-### Manual Setup
-```bash
-# Clone the repository
-git clone https://https://github.com/Pigreco-project/pigreco-decidim.git
-cd pigreco-decidim
+### Local-Only Setup (No Remote Access)
 
-# Start the containers
+```bash
+# Clone and enter directory
+git clone https://github.com/Uvesh-patel/pigreco-platform.git
+cd pigreco-platform
+
+# Start containers
 docker-compose up -d
 
-# Wait for services to initialize (about 30-45 seconds)
-# Then seed the database
-docker-compose exec decidim bash -c "cd /code && bundle exec rake db:seed"
+# Wait 45 seconds, then setup database
+docker-compose exec -T decidim bash -c "cd /code && bundle exec rails db:create db:migrate db:seed"
 
-# Access the platform at http://localhost:3000
-# Admin credentials: admin@pigreco.local / decidim123456
+# Access at http://localhost:3000
 ```
+
+## Lomellina Flood Risk Use Case
+
+The platform includes a complete implementation of the **Lomellina Flood Risk** participatory governance scenario:
+
+### Stakeholder Groups (6)
+
+| Category | Organization | Representative |
+|----------|--------------|----------------|
+| 🛡️ Civil Protection | Protezione Civile - Lomellina | Marco Bianchi |
+| 🌾 Agricultural | Terra di Riso - Cooperativa Agricola | Giulia Rossi |
+| 🎓 University | Politecnico di Milano | Prof. Alessandro Ferri |
+| 🏪 Trade Association | Confcommercio Lomellina | Francesca Colombo |
+| 🌿 Environmental NGO | Ecomuseo del Paesaggio Lomellino | Luca Martinelli |
+| 👥 Citizen Collective | Connessioni di Vita - Comunità Anziani | Maria Teresa Galli |
+
+### Participatory Spaces
+
+- **Assembly:** Lomellina Flood Risk Decision Assembly
+- **Process 1:** Levee & Embankment Operations Evaluation
+- **Process 2:** Population Delocalization Strategy Evaluation
+- **Process Group:** Gestione Rischio Idrogeologico Lomellina 2025
+
+### Key URLs (after deployment)
+
+| Page | URL Path |
+|------|----------|
+| Home | `/` |
+| Login | `/users/sign_in` |
+| Assembly | `/assemblies/lomellina-flood-risk-assembly` |
+| Assembly Members | `/assemblies/lomellina-flood-risk-assembly/members` |
+| All Processes | `/processes` |
+| Process Group | `/processes_groups/1` |
 
 ## Architecture
 
-PIGRECO runs in a containerized environment using Docker to ensure consistency across development, testing, and production. The architecture consists of three main containers:
+PIGRECO runs in a containerized environment using Docker:
 
-1. **Decidim Container**: Rails application with the PIGRECO extensions
-2. **PostgreSQL Container**: Database for persistent storage
-3. **Redis Container**: Caching and background jobs
+| Container | Service | Port |
+|-----------|---------|------|
+| **decidim** | Ruby on Rails 6.1 + Puma | 3000 |
+| **db** | PostgreSQL 14 | 5432 |
+| **redis** | Redis Cache/Sessions | 6379 |
 
-The system uses mounted volumes to customize:
-- Branding assets (in `public/`)
-- View overrides (in `app/views/`)
-- Configuration files (in `config/`)
+### Volumes
+- `/code` - Application source code (mounted)
+- `postgres-data` - Database persistence
+- `redis-data` - Cache persistence
 
 ## Development Setup
 
@@ -131,52 +183,34 @@ After successful setup, the platform will be accessible at:
 - **Web interface**: [http://localhost:3000](http://localhost:3000)
 - **Admin interface**: [http://localhost:3000/admin/](http://localhost:3000/admin/)
 
-### Admin Access
+## User Credentials
 
-Use the following credentials to access the admin panel:
+### Administrator
 
-- **Email**: admin@pigreco.local
-- **Password**: decidim123456789 (Windows) or decidim123456 (Linux/Mac)
+| Field | Value |
+|-------|-------|
+| Email | `admin@pigreco.local` |
+| Password | `decidim123456789` |
+| Role | Platform Administrator |
 
-> **Note:** It's recommended to change this password to a strong one after first login.
+### Lomellina Stakeholders
+
+**Password for ALL stakeholders:** `Lomellina2024!Secure`
+
+| Name | Email | Organization |
+|------|-------|--------------|
+| Marco Bianchi | `marco.bianchi@protezione-civile.local` | Protezione Civile |
+| Giulia Rossi | `giulia.rossi@terradriso.local` | Terra di Riso |
+| Prof. Alessandro Ferri | `alessandro.ferri@polimi.local` | Politecnico di Milano |
+| Francesca Colombo | `francesca.colombo@confcommercio.local` | Confcommercio |
+| Luca Martinelli | `luca.martinelli@ecomuseo.local` | Ecomuseo Lomellino |
+| Maria Teresa Galli | `maria.galli@connessionidivita.local` | Connessioni di Vita |
 
 ### Test Users
 
-The setup process creates several test users you can use to explore the platform:
-
-- **Admin**: admin@pigreco.local (use admin password above)
-- **Regular users**: user1@pigreco.local through user10@pigreco.local (password: `decidim123456`)
-
-### Demo Content
-
-The platform is pre-populated with demo content for risk assessment:
-
-- **Participatory process**: Community-Driven Multi-Risk Assessment
-- **Proposals**: Several example risk assessment proposals including:
-  - Earthquake Vulnerability Mapping
-  - Flood Impact Simulation Workshop
-  - Public Services Continuity Plan
-  - Long-Term Urban Resilience Strategy
-- **Meetings**: Sample risk assessment related meetings
-
-5. **Access the platform**
-   
-   Open http://localhost:3000 in your browser.
-   
-   **Admin credentials:**
-   - Email: admin@pigreco.local
-   - Password: 
-     - Windows setup: decidim123456789
-     - Linux/Mac setup: decidim123456
-     - Recommended after first login: DecidimStrongPassword123!@#
-   
-   **Test user credentials:**
-   - Citizen: citizen@pigreco.local / decidim123456
-   - Expert: expert@pigreco.local / decidim123456
-   
-   **System admin credentials:**
-   - Email: system@pigreco.local
-   - Password: decidim123456
+| Email Pattern | Password |
+|---------------|----------|
+| `user1@pigreco.local` - `user10@pigreco.local` | `decidim123456` |
 
 ### Development Commands
 
@@ -205,167 +239,61 @@ docker-compose restart decidim
 
 ## Project Structure
 
-The project follows the standard Decidim structure with additional PIGRECO-specific components:
-
 ```
-pigreco-decidim/
-├── app/                      # Application code
-│   ├── services/             # Service objects
-│   │   └── pigreco/          # PIGRECO-specific services
-│   ├── packs/                # JavaScript packs
-│   │   └── images/           # Frontend images
-│   └── views/                # View overrides
-├── assets/                   # Custom assets and branding
+pigreco-platform/
+├── app/
+│   ├── services/pigreco/       # PIGRECO-specific services
+│   ├── packs/images/           # Frontend images
+│   └── views/                  # View overrides
 ├── config/
-│   ├── initializers/         # Rails initializers
-│   │   └── pigreco.rb        # PIGRECO specific initializers
-│   └── locales/              # Localization files
+│   ├── initializers/pigreco.rb # Platform configuration
+│   └── locales/                # Localization (EN/IT)
 ├── db/
-│   ├── seeds/                # Seed data files
-│   │   └── pigreco_content.rb # PIGRECO-specific seed data
-│   └── seeds.rb              # Main seed file
-├── lib/
-│   └── tasks/                # Rake tasks
-│       ├── homepage.rake     # Homepage configuration tasks
-│       └── pigreco_db.rake   # Database tasks
-├── log/                      # Log files
-├── pigreco-setup.bat         # Windows setup script
-├── pigreco-setup.sh          # Linux/Mac setup script
-├── run.sh                    # Development run script
-├── fix_and_reset.sh          # Maintenance script
-├── storage/                  # Storage for uploads and generated files
-├── docker-compose.yml        # Docker configuration
-└── .env.example              # Example environment configuration
+│   ├── seeds.rb                # Main seed file
+│   └── seeds/
+│       ├── pigreco_content.rb  # Base PIGRECO content
+│       └── lomellina_scenario.rb # Lomellina use case data
+├── 1-start-tunnel.bat/.sh      # Cloudflare tunnel scripts
+├── 2-deploy.bat/.sh            # Automated deployment scripts
+├── docker-compose.yml          # Docker configuration
+└── README.md
 ```
 
-## Production Deployment
+## Cloudflare Tunnel Deployment
 
-For production deployment, follow these additional steps:
+Expose your local platform to the internet for demos and remote access.
 
-1. **Update security settings**
-   
-   Edit `config/initializers/pigreco.rb` and update:
-   - Admin password requirements
-   - Session timeout (currently 3600 seconds)
-   - Max login attempts (currently 5)
-   - SSL configuration
+### Install Cloudflared
 
-2. **Configure external database (optional)**
-   
-   For larger deployments, consider using an external managed PostgreSQL instance.
+**Windows:**
+```batch
+winget install --id Cloudflare.cloudflared
+```
 
-3. **Set up monitoring**
-   
-   Integrate with your monitoring solution using the `/health` endpoint.
+**macOS:**
+```bash
+brew install cloudflared
+```
 
-4. **Configure backups**
-   
-   Set up automated backups for the PostgreSQL database and uploaded files in `storage/`.
+**Linux:**
+```bash
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+```
 
-5. **Start production environment**
-   ```bash
-   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-   ```
-
-6. **Verify deployment**
-   ```bash
-   ./scripts/verify_deployment.sh
-   ```
-
-## Customization Guide
-
-### Branding and Theme
-
-PIGRECO uses the following brand elements:
-- Primary Color: #005b4f (Teal)
-- Secondary Color: #ff6d00 (Orange)
-- Typography: Montserrat for headings, Roboto for body
-- Logo: 'PIGRECO' in Montserrat Bold
-
-To customize the branding:
-
-1. Update CSS variables in `app/assets/stylesheets/pigreco_theme.scss`
-2. Replace logo files in `app/assets/images/`
-3. Apply custom fonts by modifying `app/views/layouts/decidim/_head.html.erb`
-
-### Localization
-
-Modify translations in `config/locales/pigreco.en.yml` and `config/locales/pigreco.it.yml`.
-
-Guidelines:
-- Always use full platform name 'PIGRECO Risk Governance Platform'
-- Use consistent risk terminology (high/medium/low)
-- Email templates should use [PIGRECO] prefix
-- Navigation should use risk-specific terms
-
-### Adding New Components
-
-To add a custom component:
-
-1. Create a new module in `decidim-module-your_component`
-2. Generate required files using the component generator
-3. Implement the component logic
-4. Add to your Gemfile and install
-
-## Data Seeding
-
-The platform uses a structured seed process to initialize the database with demo content:
+### Deploy with Tunnel
 
 ```bash
-# Full seed (organization, admin, demo content)
-docker-compose exec decidim bash -c "cd /code && bundle exec rake db:seed"
+# Terminal 1: Start tunnel
+./1-start-tunnel.sh   # or 1-start-tunnel.bat on Windows
 
-# Alternatively, use the provided setup scripts
-# For Windows:
-.\pigreco-setup.bat
+# Copy the URL shown (e.g., https://abc-xyz.trycloudflare.com)
 
-# For Linux/Mac:
-./pigreco-setup.sh
-
-# Just create admin (keeps existing data)
-docker-compose exec decidim bash -c "cd /code && bundle exec rake pigreco:create_admin"
-
-# Reset and start fresh
-docker-compose exec decidim bash -c "cd /code && bundle exec rake db:reset"
+# Terminal 2: Deploy with that URL
+./2-deploy.sh         # or 2-deploy.bat on Windows
 ```
 
-### Seeding Process
-
-The seeding workflow follows these steps:
-1. Environment check
-2. Database migration
-3. Organization creation
-4. Admin user creation
-5. Test users creation
-6. Static content (pages, T&C)
-7. Homepage configuration
-8. Demo content (processes, proposals, meetings)
-9. Risk data
-10. GIS data references
-11. Verification
-
-For more details, see `db/seeds.rb` and `db/seeds/pigreco_content.rb`.
-
-## Security
-
-PIGRECO implements the following security measures:
-
-- **Password Policy**:
-  - Minimum length: 12 characters
-  - Stores history of 5 previous passwords
-  - Locks account after 5 failed attempts
-
-- **Session Security**:
-  - Timeout after 3600 seconds (1 hour)
-  - Secure and HttpOnly flags for cookies
-
-- **Authentication**:
-  - bcrypt for password hashing
-  - CSRF protection on all forms
-
-- **Transport Layer Security**:
-  - HTTPS required in production
-  - Strict security headers
+> **Note:** Keep the tunnel terminal open. The URL changes each restart.
 
 ## Troubleshooting
 
@@ -397,36 +325,26 @@ docker-compose exec decidim bash -c "cd /code && bundle exec rake assets:precomp
 
 ### Logs
 
-Check logs for specific containers:
 ```bash
 # Application logs
 docker-compose logs -f decidim
-
-# Database logs
-docker-compose logs -f db
 
 # All logs
 docker-compose logs -f
 ```
 
-## Release Process
+## License
 
-Before releasing to production, complete this checklist:
+This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
-1. Complete branding verification
-2. Execute test account creation
-3. Run automated tests
-4. Perform security review
-5. Update documentation
-6. Tag v1.0 release
+## Acknowledgments
 
-## Development Notes
-
-- All files in the project directory are mounted into the Docker container
-- Changes to files will be reflected in the running application
-- Logs are stored in the `log` directory
-- Uploaded files are stored in the `storage` directory
+- Built on [Decidim](https://decidim.org/) - Free Open-Source participatory democracy platform
+- Developed as part of the PIGRECO project at University of Messina
+- Lomellina Flood Risk Use Case - Lombardy, Italy
 
 ---
 
-Developed as part of the PIGRECO project at University of Messina, 2025.
+**PIGRECO** - Participatory Integrated Governance for Risk Evaluation and Community Outcomes
+
+© 2025 University of Messina
